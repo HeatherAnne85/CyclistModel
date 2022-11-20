@@ -1,0 +1,10 @@
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+	
+	<vType id="bicycle" vClass="bicycle" accel="1.8" decel="1.0" latAlignment="right" length="1.6" width ="0.6" minGap="1.0" maxSpeed="6" speedDev="0.5" guiShape="bicycle" minGapLat="0.15" maxSpeedLat="0.5"/>
+       
+	<route id="test" edges="test exit"/> 
+	
+    <flow id="bicycles" type="bicycle" route="test" begin="0" end="3600" vehsPerHour="1300" color="5,5,255"/> 
+    
+
+</routes>
