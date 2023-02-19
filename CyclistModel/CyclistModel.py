@@ -20,17 +20,15 @@ else:
      sys.exit("please declare environment variable 'SUMO_HOME'")
 
 sumoBinary = "C:/Program Files (x86)/Eclipse/Sumo/bin/sumo-gui.exe"
-sumoCmd = [sumoBinary, "-c", "C:/Users/heath/Desktop/material/My Tools/projects/CyclistModel/CyclistModel/data/test_strecke.sumocfg"]
+sumoCmd = [sumoBinary, "-c", "C:/Users/heath/Desktop/material/My Tools/projects/CyclistModel/CyclistModel/data/hello-world.sumocfg"]
 import traci
-
-
 
        
 class roadUser(object):
     '''class to hold information about the road users (controlled and not)'''
     def __init__(self, ID, controlled, t=0):
         self.id = ID
-        self.type = traci.vehicle.getTypeID(self.id)
+        self.type = traci.vehicle.getVehicleClass(self.id)
         self.P = Point(traci.vehicle.getPosition(self.id)[0],traci.vehicle.getPosition(self.id)[1])                  #current position
         self.N = moving.NormAngle(traci.vehicle.getSpeed(self.id),(pi/2)-(traci.vehicle.getAngle(self.id)*pi/180))                                                                                  #current direction (norm angle)
         self.L = traci.vehicle.getLength(self.id)
@@ -55,19 +53,7 @@ class roadUser(object):
         self.Traj = []
         traci.vehicle.setColor(self.id, (5,5,5,100) )   
         
-    '''    
-    def getPoly(self):   
-        #returns diamond for Type='bicycle' and rectangle for Type='car'    
-        Line=LineString([(self.P.x-self.L*0.5*np.cos(self.N.angle), self.P.y-self.L*0.5*np.sin(self.N.angle)),(self.P.x,self.P.y)])
-        back = Point((self.P.x-self.L*np.cos(self.N.angle), self.P.y-self.L*np.sin(self.N.angle)))
-        right=Line.parallel_offset(0.5*self.W,'right')
-        left=Line.parallel_offset(0.5*self.W,'left')
-        if self.type == 'bicycle':
-            return MultiPoint([right.coords[0],right.coords[-1],left.coords[0],left.coords[-1],back]).convex_hull
-        else:
-            return MultiPoint([list(right.coords)[0],list(right.coords)[-1],list(left.coords)[0],list(left.coords)[-1]]).convex_hull
-    '''
-
+        
     def getPoly(self):   
         #returns diamond for Type='bicycle' and rectangle for Type='car'    
         Line=LineString([(self.P.x-self.L*np.cos(self.N.angle), self.P.y-self.L*np.sin(self.N.angle)),(self.P.x,self.P.y)])
@@ -78,66 +64,19 @@ class roadUser(object):
         else:
             return MultiPoint([list(right.coords)[0],list(right.coords)[-1],list(left.coords)[0],list(left.coords)[-1]]).convex_hull.buffer(0.3)
 
-    def getLongLine(self, p1, vector):
-        p2 = moving.Point(p1.x+(1000*vector.x),p1.y+(1000*vector.y))
-        return LineString([p1,p2])
-    
     
     def findDirection(self):
         P = self.G.interpolate(self.G.project(self.P)+self.wish)
         direction = atan2(P.y-self.P.y,P.x-self.P.x)
         return direction
-    
 
-    def getGuideline(self,xmin,xmax,ymin,ymax):
-        y = min(max(np.random.normal(loc=ymax-0.5, scale=0.3, size=1),ymin+0.4),ymax-0.4)
-        return LineString([(xmax,y),(xmin,y)])     
-    
-    
-    def side(self, wish,current):
-        rotate_right = current.rotate(self.maxTheta)
-        rotate_left = current.rotate(-1*self.maxTheta)
-        theta_right = abs(acos(np.round(moving.Point.dot(wish,rotate_right)/(wish.norm2()*rotate_right.norm2()),8)))
-        theta_left = abs(acos(np.round(moving.Point.dot(wish,rotate_left)/(wish.norm2()*rotate_left.norm2()),8)))
-        if theta_right < theta_left:
-            return 'right', rotate_right
-        else:
-            return 'left', rotate_left
-    
-    def getVw(self, wish,current,rotated):
-        ahead = moving.Point.cosine(wish,current)
-        theta = abs(acos(np.round(moving.Point.dot(wish,current)/(wish.norm2()*current.norm2()),8)))
-        if ahead < 0:
-            print(self.id,'slow down!',max(self.N.norm - self.maxDec, 0))
-            return max(self.N.norm - self.maxDec, 0)
-        elif  theta > self.maxTheta:
-            print(self.id,'too big', abs(acos(np.round(moving.Point.dot(wish,rotated)/(wish.norm2()*rotated.norm2()),8)))*wish.norm2())
-            return abs(acos(np.round(moving.Point.dot(wish,rotated)/(wish.norm2()*rotated.norm2()),8)))*wish.norm2()
-        else:
-            print(self.id,'right size', min(self.N.norm + self.maxAcc,self.wish))
-            return min(self.N.norm + self.maxAcc,self.wish)
-    
-    def getChangeInStep(self, wish, restraint):
-        current = self.N.getPoint()
-        if current.norm2() == 0:
-            current = self.N.__add__(moving.NormAngle(0.001,0)).getPoint()
-        theta = abs(acos(np.round(moving.Point.dot(wish,current)/(wish.norm2()*current.norm2()),8)))
-        if theta > restraint:
-            side, rotated = self.side(wish,current)     
-            Vw = self.getVw(wish, current, rotated)
-            wish = moving.NormAngle(Vw, rotated.angle()).getPoint()                                                                                                                                                          
-        return wish.__sub__(current)
-    
     
     def findAction(self, interaction_matrix, row, obstacles):  
-        Vw = min(self.N.norm + self.maxAcc, self.wish)
-        wish = moving.NormAngle(Vw, self.findDirection()).getPoint()
-        change = wish.__sub__(self.N.getPoint())
-        #self.getChangeInStep(wish,self.comfortTheta)
         
+        wish = moving.NormAngle(self.wish, self.findDirection()).getPoint()
         acc_interactors = moving.Point(0,0)
         acc_obstacles = moving.Point(0,0)
-        Ap = 2
+        Ap = 5
         
         for interactor in range(len(interaction_matrix[0,row,:])):
             if interactor != row and interaction_matrix[5,row,interactor] > 0:
@@ -146,12 +85,13 @@ class roadUser(object):
                     similarity = interaction_matrix[2,row,interactor]
                     long_dist = interaction_matrix[3,row,interactor]
                     lat_dist = interaction_matrix[4,row,interactor]
-     
-                    D_star = abs(long_dist+2*lat_dist)
+
+                    D_star = long_dist+lat_dist*10+self.gv*similarity
                     acc_interactors = acc_interactors.__add__(u_bq.__mul__(np.exp(-D_star/self.Rv))) 
-                
+            
+            
         for obstacle in range(len(obstacles[0,row,:])):
-            distance = obstacles[0,row,obstacle]-1
+            distance = obstacles[0,row,obstacle]
             a_comp = moving.Point(obstacles[1,row,obstacle],obstacles[2,row,obstacle])
             if distance < 0 or distance < self.safety:
                 d = 1       
@@ -162,12 +102,15 @@ class roadUser(object):
                 d = 0
             acc_obstacles = acc_obstacles.__add__(a_comp.__mul__(d))
 
-        acc = change.__sub__(acc_interactors.__mul__(Ap))
-        #V_t1 = self.N.getPoint().__add__(acc)
-        #acc = self.getChangeInStep(V_t1, self.maxTheta)
+        acc = wish.__sub__(self.N.getPoint()).divide(self.Tv).__sub__(acc_interactors.__mul__(Ap)).__sub__(acc_obstacles.__mul__(Ap))
+        
+        if self.N.norm < 0.5:
+            nor = moving.NormAngle(0,0).fromPoint(acc)
+            nor.angle = nor.angle * self.N.norm**2        
+            acc = nor.getPoint()
         
         return acc
-
+    
 
 class roadUserSet(object):
     def __init__(self, all_road_users, RU_set = {}, controlled = [], interactionMatrix = np.zeros((0,0,0)), RUPositions=[]):
@@ -194,7 +137,7 @@ class roadUserSet(object):
         for row in exiters:
             self.RU_set.pop(row)
         for row in enters:
-            if traci.vehicle.getSpeed(row) != 0:
+            if traci.vehicle.getSpeed(row) != 0 and traci.vehicle.getVehicleClass(row) == 'bicycle':
                 lane = traci.vehicle.getLaneID(row)
                 guideline = traci.lane.getShape(lane)
                 offset = np.random.random(1)
@@ -204,16 +147,19 @@ class roadUserSet(object):
     
     def updateControlled(self):
         for ID, RU in self.RU_set.items():
-            try:
+            try: 
                 lane = traci.vehicle.getLaneID(ID)
+
                 if RU.type == 'bicycle':
                     if traci.vehicle.getRoadID(ID) == traci.vehicle.getRoute(ID)[-1]:
                         RU.controlled = False
                     elif lane != RU.lane:
-                            guideline = traci.lane.getShape(lane)
-                            RU.defineControlled(LineString(guideline))
+                        guideline = traci.lane.getShape(lane)
+                        RU.defineControlled(LineString(guideline))
+            
             except:
                 continue
+
                     
         self.controlled = [RU.id for ID,RU in self.RU_set.items() if RU.controlled == True]        
     
@@ -321,8 +267,9 @@ class obstacleSet(object):
 
 
     def loadObstacles(self):
-        for f in range(len(self.obstacleList)):
-            self.obstacles[str(f)] = obstacle(f, 'obstacle', self.obstacleList[f].buffer(0.1))
+        for f in self.obstacleList:
+            shape = LineString(traci.polygon.getShape(f))
+            self.obstacles[f] = obstacle(f, 'obstacle', shape.buffer(0.1))
             
     
     def getEffectiveNormAngle(self, NormAngle):
@@ -367,16 +314,15 @@ class obstacleSet(object):
        
        
 class simulation(object):
-    def __init__(self, obstacles):
-        self.obstacles = obstacles
-        #self.signals = signals
-        
-        traci.start(sumoCmd)
-        clock = 0
+    def __init__(self):
 
-        roadUsers = roadUserSet(traci.vehicle.getIDList()) 
-        obstacles = obstacleSet(self.obstacles)
+        traci.start(sumoCmd)
         
+        obstacles = obstacleSet(traci.polygon.getIDList())
+        obstacles.loadObstacles()
+        roadUsers = roadUserSet(traci.vehicle.getIDList()) 
+        
+        clock = 0
         while clock < 10000:
             
             roadUsers.updateRoadUserSet(traci.vehicle.getIDList())
@@ -391,14 +337,8 @@ class simulation(object):
 
         traci.close()
     
-        
 
-Ob_list = []
-
-obstacles = obstacleSet(Ob_list)
-obstacles.loadObstacles()
-
-simulation(obstacles)
+simulation()
 
 
 

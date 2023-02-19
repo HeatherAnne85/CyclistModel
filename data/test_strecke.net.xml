@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-12-13 22:02:18 by Eclipse SUMO netedit Version 1.12.0
+<!-- generated on 2023-02-19 14:06:15 by Eclipse SUMO netedit Version 1.12.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
@@ -48,18 +48,12 @@
         <lane id="test_0" index="0" allow="bicycle" speed="13.89" length="150.81" width="2.00" shape="79.87,60.99 77.73,60.71 75.61,60.46 73.48,60.25 71.37,60.05 69.27,59.88 67.18,59.74 65.08,59.62 63.00,59.52 60.92,59.45 58.85,59.40 56.78,59.36 54.73,59.35 52.67,59.36 50.63,59.39 48.58,59.43 46.55,59.49 44.52,59.57 42.50,59.66 40.48,59.76 38.47,59.88 36.47,60.01 34.46,60.16 32.47,60.31 30.47,60.47 28.49,60.64 26.51,60.83 24.54,61.01 22.56,61.20 20.59,61.40 18.63,61.60 16.68,61.81 14.72,62.02 12.77,62.24 10.82,62.45 8.88,62.67 6.95,62.88 5.01,63.10 3.08,63.31 1.16,63.52 -0.76,63.73 -2.69,63.93 -4.60,64.13 -6.51,64.32 -8.43,64.51 -10.33,64.68 -12.24,64.85 -14.13,65.00 -16.04,65.15 -17.92,65.28 -19.82,65.41 -21.71,65.52 -23.59,65.61 -25.48,65.69 -27.37,65.76 -29.25,65.81 -31.13,65.84 -33.01,65.85 -34.88,65.84 -36.75,65.82 -38.63,65.77 -40.49,65.70 -42.36,65.61 -44.24,65.50 -46.10,65.36 -47.96,65.20 -49.83,65.00 -51.69,64.79 -53.56,64.55 -55.41,64.28 -57.28,63.98 -59.13,63.64 -61.00,63.28 -62.86,62.88 -64.71,62.45 -66.57,61.99 -68.43,61.49 -70.01,61.04"/>
     </edge>
 
-    <tlLogic id="gneJ0" type="static" programID="0" offset="0">
-        <phase duration="30" state="G"/>
-        <phase duration="3"  state="y"/>
-        <phase duration="30" state="r"/>
-    </tlLogic>
-
-    <junction id="gneJ0" type="traffic_light" x="-70.00" y="60.00" incLanes="test_0" intLanes="" shape="-70.28,62.00 -69.73,60.08 -69.93,60.02 -70.00,60.01 -70.07,60.00 -70.16,60.00 -70.28,60.00" radius="2.00" rightOfWay="edgePriority">
+    <junction id="gneJ0" type="priority" x="-70.00" y="60.00" incLanes="test_0" intLanes="" shape="-70.28,62.00 -69.73,60.08 -69.93,60.02 -70.00,60.01 -70.07,60.00 -70.16,60.00 -70.28,60.00" radius="2.00" rightOfWay="edgePriority">
         <request index="0" response="0" foes="0"/>
     </junction>
     <junction id="gneJ1" type="dead_end" x="80.00" y="60.00" incLanes="" intLanes="" shape="80.00,60.00 79.74,61.98"/>
     <junction id="gneJ6" type="dead_end" x="-100.00" y="60.00" incLanes="exit_0" intLanes="" shape="-100.00,62.00 -100.00,60.00"/>
 
-    <connection from="test" to="exit" fromLane="0" toLane="0" tl="gneJ0" linkIndex="0" dir="s" state="O"/>
+    <connection from="test" to="exit" fromLane="0" toLane="0" dir="s" state="M"/>
 
 </net>
