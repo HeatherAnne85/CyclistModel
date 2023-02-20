@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2023-02-19 16:46:20 by Eclipse SUMO netedit Version 1.12.0
+<!-- generated on 2023-02-20 11:33:32 by Eclipse SUMO netedit Version 1.12.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
@@ -31,7 +31,6 @@
 
     <netedit>
         <additional-files value="C:\Users\heath\Desktop\material\My%20Tools\projects\CyclistModel\CyclistModel\data\polys.xml"/>
-        <route-files value="C:\Users\heath\Desktop\material\My%20Tools\projects\CyclistModel\CyclistModel\data\hello-world.rou.xml"/>
     </netedit>
 
     <report>
@@ -42,5 +41,5 @@
 -->
 
 <additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
-    <poly id="po_0" color="red" fill="0" lineWidth="0.10" layer="1.00" shape="130.310000,61.130000 -26.850000,63.220000"/>
+    <poly id="po_0" color="red" fill="0" lineWidth="0.10" layer="10.00" shape="131.720000,61.210000 -26.340000,63.430000"/>
 </additional>

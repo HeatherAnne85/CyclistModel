@@ -12,6 +12,8 @@ from trafficintelligence import moving
 import gc
 from shapely.geometry import *
 from shapely.ops import nearest_points
+from shapely.affinity import rotate
+
 
 if 'SUMO_HOME' in os.environ:
      tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -137,12 +139,15 @@ class roadUserSet(object):
         for row in exiters:
             self.RU_set.pop(row)
         for row in enters:
-            if traci.vehicle.getSpeed(row) != 0 and traci.vehicle.getVehicleClass(row) == 'bicycle':
+            if traci.vehicle.getSpeed(row) != 0 and traci.vehicle.getRoadID(row) == traci.vehicle.getRoute(row)[0] and traci.vehicle.getLanePosition(row)>5 and traci.vehicle.getVehicleClass(row) == 'bicycle':
                 lane = traci.vehicle.getLaneID(row)
                 guideline = traci.lane.getShape(lane)
-                offset = np.random.random(1)
+                offset = np.random.uniform(-1, 1)
                 self.RU_set[row] = roadUser(row,True)
-                self.RU_set[row].defineControlled(LineString(guideline).parallel_offset(0.5*offset,'left'))
+                if offset > 0:
+                    self.RU_set[row].defineControlled(LineString(guideline).parallel_offset(0.3*offset,'left'))
+                else:
+                    self.RU_set[row].defineControlled(rotate(LineString(guideline).parallel_offset(-0.3*offset,'right'),180,'centroid'))
         
     
     def updateControlled(self):
@@ -268,6 +273,7 @@ class obstacleSet(object):
 
     def loadObstacles(self):
         for f in self.obstacleList:
+            print (LineString([(1,1),(1,2)]))
             shape = LineString(traci.polygon.getShape(f))
             self.obstacles[f] = obstacle(f, 'obstacle', shape.buffer(0.1))
             

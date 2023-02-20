@@ -7,6 +7,6 @@
     <vType id="bicycle" vClass="bicycle"/>
     <route id="bike_return" edges="-1 -2 -2.105"/>
     <route id="bike_there" edges="2 1"/>
-    <flow id="f_0" type="DEFAULT_BIKETYPE" begin="0.00" route="bike_there" end="3600.00" vehsPerHour="1800.00"/>
+    <flow id="f_0" type="DEFAULT_BIKETYPE" begin="0.00" route="bike_there" end="3600.00" vehsPerHour="1000.00"/>
     <flow id="f_1" begin="0.00" route="bike_there" end="3600.00" vehsPerHour="1800.00"/>
 </routes>
