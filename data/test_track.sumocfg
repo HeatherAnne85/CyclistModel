@@ -3,8 +3,9 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="test_strecke.net.xml"/>
-        <route-files value="test_strecke.rou.xml"/>
+        <net-file value="test_track.net.xml"/>
+        <route-files value="test_track.rou.xml"/>
+	  <additional-files value="polys.xml"/>
     </input>
 
     <processing>
