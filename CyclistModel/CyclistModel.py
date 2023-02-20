@@ -21,8 +21,15 @@ if 'SUMO_HOME' in os.environ:
 else:
      sys.exit("please declare environment variable 'SUMO_HOME'")
 
-sumoBinary = "C:/Program Files (x86)/Eclipse/Sumo/bin/sumo-gui.exe"
-sumoCmd = [sumoBinary, "-c", "C:/Users/heath/Desktop/material/My Tools/projects/CyclistModel/CyclistModel/data/hello-world.sumocfg"]
+#sumoBinary = "C:/Program Files (x86)/Eclipse/Sumo/bin/sumo-gui.exe"
+#sumoCmd = [sumoBinary, "-c", "C:/Users/heath/Desktop/material/My Tools/projects/CyclistModel/CyclistModel/data/hello-world.sumocfg"]
+if os.name == 'posix':
+    sumoCmd = ['sumo-gui','-c', '../data/test_track.sumocfg']
+elif os.name == 'nt':
+    sumoCmd = ['sumo-gui.exe','-c', '../data/test_track.sumocfg']
+else:
+    print('OS not supported!')
+
 import traci
 
        
