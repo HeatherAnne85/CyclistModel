@@ -30,7 +30,7 @@ Contributions to the Python module are always welcome! If you have an idea for a
 
 ## Authors
 
-- Prof. Heather Kaths (kaths@uni-wuppertal.de)
+- Heather Kaths (kaths@uni-wuppertal.de)
 
 ## License
 
