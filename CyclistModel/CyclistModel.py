@@ -21,7 +21,6 @@ if 'SUMO_HOME' in os.environ:
 else:
      sys.exit("please declare environment variable 'SUMO_HOME'")
 
-
 if os.name == 'posix':
     sumoCmd = ['sumo-gui','-c', '../data/test_track.sumocfg']
 elif os.name == 'nt':
