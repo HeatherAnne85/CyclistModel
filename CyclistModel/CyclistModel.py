@@ -48,9 +48,9 @@ class roadUser(object):
         
         
     def defineControlled(self, G):
-        self.wish = min(max(np.random.normal(loc=5.3, scale=1.4, size=1),3.0),10)
+        self.wish = min(max(np.random.normal(loc=5.3, scale=1.4, size=1),3.0),8.0)
         self.Tv = min(max(np.random.normal(loc=3, scale=1, size=1),2.0),4)
-        self.Rv = min(max(np.random.normal(loc=3, scale=0.1, size=1),2),4)
+        self.Rv = min(max(np.random.normal(loc=6, scale=0.1, size=1),4),8)
         self.gv = min(max(np.random.normal(loc=1, scale=0.1, size=1),0.97),1.05)
         self.safety = min(max(np.random.normal(loc=0.25, scale=0.1, size=1),0.2),0.3)  
         self.comfortTheta = 0.5
@@ -84,7 +84,7 @@ class roadUser(object):
         wish = moving.NormAngle(self.wish, self.findDirection()).getPoint()
         acc_interactors = moving.Point(0,0)
         acc_obstacles = moving.Point(0,0)
-        Ap = 1
+        Ap = 1.5
         
         for interactor in range(len(interaction_matrix[0,row,:])):
             if interactor != row and interaction_matrix[5,row,interactor] > 0:
@@ -102,7 +102,7 @@ class roadUser(object):
         for obstacle in range(len(obstacles[0,row,:])):
             distance = obstacles[0,row,obstacle]
             a_comp = moving.Point(obstacles[1,row,obstacle],obstacles[2,row,obstacle])
-            if distance < 0 or distance < self.safety:
+            if distance < self.safety:
                 d = 1       
             elif distance < self.safety + self.W/2:
                 ds = self.safety + self.W/2
@@ -111,7 +111,7 @@ class roadUser(object):
                 d = 0
             acc_obstacles = acc_obstacles.__add__(a_comp.__mul__(d))
 
-        acc = wish.__sub__(self.N.getPoint()).divide(self.Tv).__sub__(acc_interactors.__mul__(Ap)).__sub__(acc_obstacles.__mul__(3))
+        acc = wish.__sub__(self.N.getPoint()).divide(self.Tv).__sub__(acc_interactors.__mul__(Ap)).__sub__(acc_obstacles.__mul__(Ap))
         
         if self.N.norm < 0.5:
             nor = moving.NormAngle(0,0).fromPoint(acc)
@@ -186,7 +186,7 @@ class roadUserSet(object):
                 RU.N = moving.NormAngle(traci.vehicle.getSpeed(ID),(pi/2)-(traci.vehicle.getAngle(ID)*pi/180))
                 RU.Poly = RU.getPoly()
             else:
-                acc = RU.findAction(self.interactionMatrix,self.RUPositions.index(ID), obstacles)
+                acc = RU.findAction(self.interactionMatrix, self.RUPositions.index(ID), obstacles)
                 V = RU.N.getPoint().__add__(acc)
                 RU.P = Point(RU.P.x + V.x/step,RU.P.y + V.y/step)
                 RU.N = moving.NormAngle(0,0).fromPoint(V)
@@ -283,7 +283,6 @@ class obstacleSet(object):
 
     def loadObstacles(self):
         for f in self.obstacleList:
-            print (LineString([(1,1),(1,2)]))
             shape = LineString(traci.polygon.getShape(f))
             self.obstacles[f] = obstacle(f, 'obstacle', shape.buffer(0.1))
             
@@ -316,13 +315,14 @@ class obstacleSet(object):
             col = 0
             for num, obstacle in self.obstacles.items():
                 obstacle_point = obstacle.geometry.boundary.interpolate(obstacle.geometry.boundary.project(RU.P))   
+                distance = moving.Point(obstacle_point.x-RU.P.x,obstacle_point.y-RU.P.y).norm2()
                 u_bq = moving.Point(obstacle_point.x-RU.P.x,obstacle_point.y-RU.P.y)
                 u_bq = u_bq.__mul__(1/u_bq.norm2())
                 theta = self.getTheta(u_bq, egoNormAngle.getPoint())
                 side = moving.Point.cross(egoNormAngle.getPoint(),u_bq)/(u_bq.norm2()*egoNormAngle.norm*sin(theta))
                 perp = moving.NormAngle(egoNormAngle.norm, egoNormAngle.angle+side*pi/2).getPoint()
                 a_comp = perp.__mul__(1/perp.norm2())
-                self.interactionMatrix[0,row,col] = u_bq.norm2()
+                self.interactionMatrix[0,row,col] = distance
                 self.interactionMatrix[1,row,col] = a_comp.x
                 self.interactionMatrix[2,row,col] = a_comp.y
                 col+=1
