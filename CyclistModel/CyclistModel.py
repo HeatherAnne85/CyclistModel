@@ -21,8 +21,14 @@ if 'SUMO_HOME' in os.environ:
 else:
      sys.exit("please declare environment variable 'SUMO_HOME'")
 
-sumoBinary = "C:/Program Files (x86)/Eclipse/Sumo/bin/sumo-gui.exe"
-sumoCmd = [sumoBinary, "-c", "C:/Users/heath/Desktop/material/My Tools/projects/CyclistModel/CyclistModel/data/hello-world.sumocfg"]
+
+if os.name == 'posix':
+    sumoCmd = ['sumo-gui','-c', '../data/test_track.sumocfg']
+elif os.name == 'nt':
+    sumoCmd = ['sumo-gui.exe','-c', '../data/test_track.sumocfg']
+else:
+    print('OS not supported!')
+
 import traci
 
        
@@ -53,7 +59,7 @@ class roadUser(object):
         self.maxDec = -2
         self.G = G
         self.Traj = []
-        traci.vehicle.setColor(self.id, (5,5,5,100) )   
+        traci.vehicle.setColor(self.id, (16,89,209,255) )   
         
         
     def getPoly(self):   
@@ -78,17 +84,18 @@ class roadUser(object):
         wish = moving.NormAngle(self.wish, self.findDirection()).getPoint()
         acc_interactors = moving.Point(0,0)
         acc_obstacles = moving.Point(0,0)
-        Ap = 5
+        Ap = 1
         
         for interactor in range(len(interaction_matrix[0,row,:])):
             if interactor != row and interaction_matrix[5,row,interactor] > 0:
-                u_bq = moving.Point(interaction_matrix[0,row,interactor],interaction_matrix[1,row,interactor])
-                if u_bq.norm2() < 10:
+                distance = interaction_matrix[6,row,interactor]
+                if distance < 10:
+                    u_bq = moving.Point(interaction_matrix[0,row,interactor],interaction_matrix[1,row,interactor])
                     similarity = interaction_matrix[2,row,interactor]
                     long_dist = interaction_matrix[3,row,interactor]
                     lat_dist = interaction_matrix[4,row,interactor]
 
-                    D_star = long_dist+lat_dist*10+self.gv*similarity
+                    D_star = distance
                     acc_interactors = acc_interactors.__add__(u_bq.__mul__(np.exp(-D_star/self.Rv))) 
             
             
@@ -104,7 +111,7 @@ class roadUser(object):
                 d = 0
             acc_obstacles = acc_obstacles.__add__(a_comp.__mul__(d))
 
-        acc = wish.__sub__(self.N.getPoint()).divide(self.Tv).__sub__(acc_interactors.__mul__(Ap)).__sub__(acc_obstacles.__mul__(Ap))
+        acc = wish.__sub__(self.N.getPoint()).divide(self.Tv).__sub__(acc_interactors.__mul__(Ap)).__sub__(acc_obstacles.__mul__(3))
         
         if self.N.norm < 0.5:
             nor = moving.NormAngle(0,0).fromPoint(acc)
@@ -229,8 +236,10 @@ class roadUserSet(object):
             2: similarity                               #number between -1 and 1 desribing the similarity in velocity of two road users
             3: longitudinal distance between road users (headway)
             4: lateral distance between road user
+            5: ahead (>0 if ahead, <0 if behind, 0 if beside)
+            6: distance
         '''
-        self.interactionMatrix = np.zeros((6,len(self.all_road_users_SUMO),len(self.all_road_users_SUMO)))
+        self.interactionMatrix = np.zeros((7,len(self.all_road_users_SUMO),len(self.all_road_users_SUMO)))
         row = 0
         for ID in sorted(self.RU_set.keys(), key=lambda ID: self.RU_set[ID].id):
             ego = self.RU_set[ID]
@@ -241,9 +250,10 @@ class roadUserSet(object):
                 interactor = self.RU_set[num]
                 if num != ID:
                     interactorNormAngle = self.getEffectiveNormAngle(interactor.N)
-                    interactor_point = interactor.Poly.boundary.interpolate(interactor.Poly.boundary.project(ego.P)) 
-                    u_bq = moving.Point(interactor_point.x-ego_point.x,interactor_point.y-ego_point.y)   
-                    if u_bq.norm2() < 10 and u_bq.norm2() > 0:
+                    interactor_point = interactor.Poly.boundary.interpolate(interactor.Poly.boundary.project(ego.P))
+                    distance = moving.Point.distanceNorm2(moving.Point(interactor_point.x, interactor_point.y), ego.P)
+                    if distance < 10 :
+                        u_bq = (moving.Point(interactor_point.x, interactor_point.y)-ego.P).__mul__(1/distance)
                         self.interactionMatrix[0,row,col] = u_bq.x
                         self.interactionMatrix[1,row,col] = u_bq.y
                         side = moving.Point.cross(egoNormAngle.getPoint(),u_bq)/(u_bq.norm2()*egoNormAngle.norm*sin(self.getTheta(u_bq,egoNormAngle.getPoint())))
@@ -252,7 +262,7 @@ class roadUserSet(object):
                         self.interactionMatrix[3,row,col] = moving.Point.dot(u_bq,egoNormAngle.getPoint())/egoNormAngle.norm               #longitudinal distance
                         self.interactionMatrix[4,row,col] = moving.Point.dot(u_bq,perp)/egoNormAngle.norm                                  #lateral distance
                         self.interactionMatrix[5,row,col] = moving.Point.cosine(u_bq,egoNormAngle.getPoint())                              #ahead or behind
-
+                        self.interactionMatrix[6,row,col] = distance
                 col+=1
             row+=1
                 
@@ -307,6 +317,7 @@ class obstacleSet(object):
             for num, obstacle in self.obstacles.items():
                 obstacle_point = obstacle.geometry.boundary.interpolate(obstacle.geometry.boundary.project(RU.P))   
                 u_bq = moving.Point(obstacle_point.x-RU.P.x,obstacle_point.y-RU.P.y)
+                u_bq = u_bq.__mul__(1/u_bq.norm2())
                 theta = self.getTheta(u_bq, egoNormAngle.getPoint())
                 side = moving.Point.cross(egoNormAngle.getPoint(),u_bq)/(u_bq.norm2()*egoNormAngle.norm*sin(theta))
                 perp = moving.NormAngle(egoNormAngle.norm, egoNormAngle.angle+side*pi/2).getPoint()
