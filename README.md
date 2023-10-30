@@ -22,7 +22,7 @@ in addition make sure to have installed the latest version of sumo, including su
 
 ### Installing
 
-Clone the repository and run the file `./Cycling-model/CyclingModel.py` in the command line of choice in your operating system.
+Clone the repository and run the file `./CyclistModel/CyclistModel.py` in the command line of choice in your operating system.
 
 ## Contributing
 
