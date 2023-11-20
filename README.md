@@ -2,6 +2,10 @@
 
 A module compatible with SUMO for modelling cyclists in microscopic traffic simulation
 
+If you use this code, please cite my paper:
+
+Kaths H (2023) A movement and interaction model for cyclists and other non-lane-based road users. Front. Future Transp. 4:1183270. doi: 10.3389/ffutr.2023.1183270 
+
 ## Getting Started
 
 CyclistModel is does not need installation and can be used as it is.
